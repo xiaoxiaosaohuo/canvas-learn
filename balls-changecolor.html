@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>控制小球运动</title>
+</head>
+
+<style type="text/css">
+	#wrapper{
+		width: 1200px;
+		height:800px;
+		position: relative;
+		margin: 50px auto;
+	}
+	#canvas{
+		border: 1px solid #aaa;
+	}
+	#controller{
+		position:absolute;
+		top: 30px;
+		left:30px;
+		background-color: rgba(0,85,116,0.7);
+		padding:5px 20px 25px 20px;
+		border-radius: 10px;
+	}
+	#controller h1{
+		color:white;
+		font-weight: bold;
+		font-family: Miscrosoft Yahei;
+	}
+	a{
+		text-decoration: none;
+	}
+	#controller #canvas-btn{
+		display: inline-block;
+		background-color:#8b0;
+		color:white;
+		font-size:14px;
+		padding:5px 15px;
+		margin-top:10px;
+		margin-right: 20px;
+	}
+	#controller #canvas-btn:hover{
+		background-color: #7a0;
+	}
+	#controller .color-btn{
+		display: inline-block;
+		padding: 5px 15px;
+		border-radius:6px 6px;
+		font-size: 14px;
+		margin-top: 10px;
+		margin-right: 5px;
+
+	}
+	#controller #white-btn{
+		background-color: white;
+	}
+	#controller #white-btn:hover{
+		background-color: #fec;
+	}
+	#controller #black-btn{
+		background-color: black;
+	}
+	#controller #black-btn:hover{
+		background-color: #333;
+	}
+</style>
+<body>
+<div id="wrapper">
+	<canvas id="canvas">
+	您的浏览器不支持Canvas...
+	</canvas>
+	<div id="controller">
+		<h1>点击切换功能</h1>
+		<a href="#" id="canvas-btn">停止</a>
+		<a href="#" id="white-btn" class="color-btn">&nbsp;</a>
+		<a href="#" id="black-btn" class="color-btn">&nbsp;</a>
+	</div>
+</div>
+	
+
+   <!-- 默认参数配置 -->
+	<!-- context.arc(
+				centerx,centery,radius
+				startingAngle,endingAngle
+				anticlockwise=false
+
+	) -->
+<script type="text/javascript">
+
+	var balls=[];//存储小球
+	var isMove=true;
+	var Bgcolor="white";
+	window.onload=function(){
+
+		var canvas=document.getElementById("canvas");
+		if(canvas.getContext("2d")){
+				var context=canvas.getContext("2d");
+			}else{
+				alert("你的浏览器不支持Canvas");
+			}
+
+		canvas.width=1200;
+		canvas.height=800;
+
+		context.globalAlpha=0.6;//全局透明度
+
+		for(var i=0;i<50;i++){
+			var R=Math.floor(Math.random()*255);
+			var G=Math.floor(Math.random()*255);
+			var B=Math.floor(Math.random()*255);
+			var radius=Math.random()*50+20;
+			var ball={
+				color:"rgb("+R+","+G+","+B+")",
+				radius:radius,
+				x:Math.random()*(canvas.width-2*radius)+radius,
+				y:Math.random()*(canvas.height-2*radius)+radius,
+				vx:(Math.random()*5+5)*Math.pow(-1,Math.floor(Math.random()*100)),
+				vy:(Math.random()*5+5)*Math.pow(-1,Math.floor(Math.random()*100))
+
+			}
+			balls[i]=ball;
+
+			}
+
+
+			document.getElementById("canvas-btn").onclick=function(e){
+				if(isMove){
+					isMove=false;
+					this.text="运动";
+				}else{
+					isMove=true;
+					this.text="停止"
+				}
+				return false;
+			}
+			document.getElementById("white-btn").onclick=function(e){
+				Bgcolor="white";
+				return false;
+			}
+			document.getElementById("black-btn").onclick=function(e){
+				Bgcolor="black";
+
+				return false;
+			}
+
+			//设置定时器，动态更新小球状态
+			setInterval(function(){
+				draw(context);
+				if(isMove){
+				update(canvas.width,canvas.height);
+				}
+			},50);
+
+
+			
+
+	}
+			//globalCompositeOperation="source-over"
+	function draw(cxt){
+		var canvas=cxt.canvas;
+		cxt.clearRect(0,0,canvas.width,canvas.height);//每次要清空画布，否则，上一次的小球会遗留在画布上；
+		
+		if(Bgcolor=="black"){
+			cxt.fillStyle="black";
+
+			cxt.fillRect(0,0,canvas.width,canvas.height);
+		}
+		for(var i=0;i<balls.length;i++){
+			cxt.globalCompositeOperation="lighter";//设置小球的globalCompositeOperation属性
+			cxt.fillStyle=balls[i].color;
+			cxt.beginPath();
+			cxt.arc(balls[i].x,balls[i].y,balls[i].radius,0,Math.PI*2);
+			cxt.closePath();
+			cxt.fill();
+		}
+	}
+	//更新小球位置
+	function update(canvasWidth,canvasHeight){
+		for(var i=0;i<balls.length;i++){
+			balls[i].x+=balls[i].vx;
+			balls[i].y+=balls[i].vy;
+			if(balls[i].x-balls[i].radius<=0){
+				balls[i].vx=-balls[i].vx;
+				balls[i].x=balls[i].radius;
+			}
+			if(balls[i].x+balls[i].radius>=canvasWidth){
+				balls[i].vx=-balls[i].vx;
+				balls[i].x=canvasWidth-balls[i].radius;
+			}
+			if(balls[i].y-balls[i].radius<=0){
+				balls[i].vy=-balls[i].vy;
+				balls[i].y=balls[i].radius;
+			}
+			if(balls[i].y+balls[i].radius>=canvasHeight){
+				balls[i].vy=-balls[i].vy;
+				balls[i].y=canvasHeight-balls[i].radius;
+			}
+		}
+
+	}
+
+
+</script>
+</body>
+</html>

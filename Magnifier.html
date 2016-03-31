@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>鼠标交互</title>
+</head>
+<body>
+	<canvas id="canvas" style="display: block; margin:0,auto;border:1px solid #aaa"></canvas>
+	<canvas id="offCanvas" style="display: none"></canvas>
+	<script type="text/javascript">
+	//获取画布对象
+		var canvas=document.getElementById("canvas");
+		var context=canvas.getContext("2d");
+		var image=new Image();
+		//离屏画布
+		var offCanvas=document.getElementById("offCanvas");
+		var offContext=offCanvas.getContext("2d");
+
+		var isMouseDown=true;//判断鼠标是否处于点击状态
+		var scale=0;
+		window.onload=function(){
+			canvas.width=960;
+			canvas.height=640;
+			image.src="img.jpg";
+			image.onload=function(){
+				context.drawImage(image,0,0,canvas.width,canvas.height);//设置为画布的宽高
+
+				offCanvas.width=image.width;//设置离屏canvas的尺寸是图片的尺寸
+				offCanvas.height=image.height;
+				scale=offCanvas.width/canvas.width;//设置缩放比例，正常图片除以画布宽度，前提是保证画布和原始图片的比例是一致的
+
+				offContext.drawImage(image,0,0);//将图片放到离屏canvas上
+				
+				}
+			}
+			function coordTransform(x,y){
+				var box=canvas.getBoundingClientRect();
+				return{
+					x:x-box.left,//鼠标的距离左边的距离-画布距离左边的距离=鼠标距离画布左边缘的距离
+					y:y-box.top
+				}
+
+			}
+
+			canvas.onmousedown=function(e){
+				e.preventDefault();
+				var coord=coordTransform(e.clientX,e.clientY);
+				console.log(coord);
+
+				isMouseDown=true;
+
+				drawCanvasWithMagnifier(true,coord);//绘制放大镜函数
+			}
+			canvas.onmousemove=function(e){
+				e.preventDefault();
+				if(isMouseDown){//如果鼠标处于点击状态，显示放大镜
+					var coord=coordTransform(e.clientX,e.clientY);
+					drawCanvasWithMagnifier(true,coord);
+
+				}
+			}
+			canvas.onmouseup=function(e){
+				e.preventDefault();
+				isMouseDown=false;
+				drawCanvasWithMagnifier(false);
+			}
+			canvas.onmouseout=function(e){
+				e.preventDefault();
+				isMouseDown=false;
+				drawCanvasWithMagnifier(false);
+			}
+
+			function drawCanvasWithMagnifier(isShow,coord){
+				context.clearRect(0,0,canvas.width,canvas.height);
+				context.drawImage(image,0,0,canvas.width,canvas.height);
+				if(isShow){
+					drawMagnifier(coord);
+				}
+			}
+		    function drawMagnifier(coord){
+		    	var cx=coord.x*scale;
+		    	var cy=coord.y*scale;   //获取放大后原始图片的位置。鼠标距离画布的上边缘距离*比例就是对应的原始图片中的位置。这是映射关系。否则显示的将不是同一个地方
+		    	var mr=200;//放大镜半径
+		    	var sx=cx-mr;   //原始图片的截取位置
+		    	var sy=cy-mr;
+
+		    	var dx=coord.x-mr;  //映射到画布的位置
+		    	var dy=coord.y-mr;
+		    	context.save();
+		    	context.lineWidth=10.0;
+		    	context.strokeStyle='#069';
+		    	context.beginPath();
+		    	context.arc(coord.x,coord.y,mr,0,Math.PI*2);//画圆
+		    	context.stroke()
+		    	context.clip(); //剪辑
+
+		    	context.drawImage(offCanvas,sx,sy,2*mr,2*mr,dx,dy,2*mr,2*mr);
+		    	context.restore();
+
+
+
+		}
+	</script>
+</body>
+</html>
